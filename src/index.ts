@@ -13,7 +13,6 @@ export class TableUI {
     private singleTagElementFactory: SingleTagElementFactory;
     private elementHandlers: Map<string, any>;
 
-    // todo: type
     constructor(elementFactory: ElementFactory, singleTagElementFactory: SingleTagElementFactory, rows: Array<Row>, keys: Array<string>) {
         this.rows = rows;
         this.keys = keys;
