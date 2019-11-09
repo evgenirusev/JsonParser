@@ -1,3 +1,3 @@
-export interface Attributes {
+export interface IAttributes {
     [key: string]: string
 }
