@@ -8,7 +8,6 @@ import { RowParser } from "./Parser/RowParser";
 
 // todo
 const sortRowsByFirstNameAsc = (a: Row, b: Row) => a.firstName.localeCompare(b.firstName);
-const sortRowsByFirstNameDesc = (a: Row, b: Row) => b.firstName.localeCompare(a.firstName);
 const sortRowsById = (a: Row, b: Row) =>  a.id - b.id;
 
 export class TableUI {
@@ -107,6 +106,20 @@ export class TableUI {
     const keysInOrder: Array<string> = ["avatar", "id", "firstName", "lastName", "email", "gender", "IPAddress", "friends"];
     let rows: Array<Row> = new DataParser(new RowParser()).parseData(data);
     let table: TableUI = new TableUI(new ElementFactory(), new SingleTagElementFactory, rows, keysInOrder, sortRowsByFirstNameAsc);
-    
+
     document.getElementById("app").innerHTML = table.render();
+
+    let keysToSortingFunctions: Map<string, (a: Row, b: Row) => number> = new Map();
+    keysToSortingFunctions.set("id", sortRowsById);
+    keysToSortingFunctions.set("firstName", sortRowsByFirstNameAsc);
+
+    keysInOrder.map((key: string) => {
+        document.getElementById(key).addEventListener("click", function(event) { 
+            let sortingStrategy: (a: Row, b: Row) => number = keysToSortingFunctions.get((event.target as HTMLInputElement).id);
+            table.setSortingStrategy(sortingStrategy);
+            console.log(table);
+            console.log(table.render());
+            document.getElementById("app").innerHTML = table.render();
+        });
+    });
 }(MOCK.slice(0,10), document))
