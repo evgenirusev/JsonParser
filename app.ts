@@ -262,9 +262,9 @@ export class TableUI {
 }
 
 (function(data, document) {
+    const keysInOrder = ["avatar", "id", "firstName", "lastName", "email", "gender", "IPAddress", "friends"];
     let rows: Array<Row> = new DataParser(new RowParser()).parseData(data);
-    // todo
-    let table: TableUI = new TableUI(new ElementFactory(), new SingleTagElementFactory, rows, ["avatar","id","firstName","lastName","email","gender","IPAddress","friends"]);
+    let table: TableUI = new TableUI(new ElementFactory(), new SingleTagElementFactory, rows, keysInOrder);
     
     document.getElementById("app").innerHTML = table.render();
 }(MOCK.slice(0,10), document))
