@@ -1,4 +1,4 @@
-import { MOCK } from "./MOCK_DATA.js";
+import { MOCK } from "./mock/MOCK_DATA.js";
 import { Row } from "./Entities/Row.js";
 import { ElementFactory } from "./Factories/ElementFactory.js";
 import { SingleTagElementFactory } from "./Factories/SingleTagElementFactory.js";
