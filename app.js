@@ -107,8 +107,9 @@ class ElementFactory {
     }
 }
 export class TableUI {
-    constructor(elementFactory, rows) {
+    constructor(elementFactory, rows, keys) {
         this.rows = rows;
+        this.keys = keys;
         this.elementFactory = elementFactory;
         this.specialElements = new Map();
         this.specialElements.set("avatar", this.avatarHandler.bind(this));
@@ -127,20 +128,24 @@ export class TableUI {
         }).join(""));
     }
     render() {
-        return this.renderTable(this.rows.map(this.renderRow.bind(this)).join(""));
+        return this.renderTable(this.renderTr(this.keys.map(this.renderTd.bind(this)).join(""))
+            + this.rows.map(this.renderRow.bind(this)).join(""));
     }
     renderTable(value) {
         return this.elementFactory.create("table", value).render();
     }
     renderRow(row) {
-        return this.elementFactory.create("tr", this.parseRow(row)).render();
+        return this.renderTr(this.parseRow(row));
     }
     parseRow(row) {
-        return Object.keys(row).map(key => {
+        return this.keys.map(key => {
             return this.renderTd(this.specialElements.has(key)
                 ? this.specialElements.get(key)(row[key])
                 : row[key]);
         }).join("");
+    }
+    renderTr(value) {
+        return this.elementFactory.create("tr", value).render();
     }
     renderTd(value) {
         return this.elementFactory.create("td", value).render();
@@ -154,6 +159,7 @@ export class TableUI {
 }
 (function (data, document) {
     let rows = new DataParser(new RowParser()).parseData(data);
-    let table = new TableUI(new ElementFactory(), rows);
+    // todo: refactor keys
+    let table = new TableUI(new ElementFactory(), rows, ["avatar", "id", "firstName", "lastName", "email", "gender", "IPAddress", "friends"]);
     document.getElementById("app").innerHTML = table.render();
 }(MOCK.slice(0, 10), document));

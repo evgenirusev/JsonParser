@@ -162,12 +162,14 @@ class ElementFactory {
 }
 
 export class TableUI {
+    private keys: Array<string>;
     private rows: Array<Row>;
     private elementFactory: ElementFactory;
     private specialElements: Map<string, any>;
 
-    constructor(elementFactory: ElementFactory, rows: Array<Row>) {
+    constructor(elementFactory: ElementFactory, rows: Array<Row>, keys: Array<string>) {
         this.rows = rows;
+        this.keys = keys;
         this.elementFactory = elementFactory;
         this.specialElements = new Map();
         this.specialElements.set("avatar", this.avatarHandler.bind(this));
@@ -193,7 +195,8 @@ export class TableUI {
 
     public render(): string {
         return this.renderTable(
-            this.rows.map(this.renderRow.bind(this)).join("")
+            this.renderTr(this.keys.map(this.renderTd.bind(this)).join("")) 
+            + this.rows.map(this.renderRow.bind(this)).join("")
         );
     }
 
@@ -202,19 +205,21 @@ export class TableUI {
     }
 
     private renderRow(row: Row): string {
-        return this.elementFactory.create("tr",
-            this.parseRow(row)
-        ).render();
+        return this.renderTr(this.parseRow(row));
     }
 
     private parseRow(row: Row): string {
-        return Object.keys(row).map(key => {
+        return this.keys.map(key => {
             return this.renderTd(
                 this.specialElements.has(key) 
                     ? this.specialElements.get(key)(row[key])
                     : row[key]
             );
         }).join("");
+    }
+
+    private renderTr(value: string): string {
+        return this.elementFactory.create("tr", value).render();
     }
 
     private renderTd(value: string): string {
@@ -232,7 +237,8 @@ export class TableUI {
 
 (function(data, document) {
     let rows: Array<Row> = new DataParser(new RowParser()).parseData(data);
-    let table: TableUI = new TableUI(new ElementFactory(), rows);
+    // todo: refactor keys
+    let table: TableUI = new TableUI(new ElementFactory(), rows, ["avatar","id","firstName","lastName","email","gender","IPAddress","friends"]);
     
     document.getElementById("app").innerHTML = table.render();
 }(MOCK.slice(0,10), document))
