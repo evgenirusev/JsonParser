@@ -1,9 +1,8 @@
 import { MOCK } from "./MOCK_DATA.js";
 export class Row {
 }
-class RowBuilder {
-    // Not original GOF builder. I need this for runtime param parsing
-    build(user) {
+class RowParser {
+    parseToRow(user) {
         let row = new Row();
         row.avatar = user.avatar;
         row.email = user.email;
@@ -26,7 +25,7 @@ class DataParser {
         this.rowBuilder = rowBuilder;
     }
     parseData(users) {
-        return users.map(this.rowBuilder.build);
+        return users.map(this.rowBuilder.parseToRow);
     }
 }
 class HTMLElement {
@@ -38,36 +37,59 @@ class HTMLElement {
         return `<${this.tag}>${this.value}</${this.tag}>`;
     }
 }
-class TH extends HTMLElement {
+class THTag extends HTMLElement {
     constructor(value) {
         super("th", value);
     }
 }
-class TD extends HTMLElement {
+class TDTag extends HTMLElement {
     constructor(value) {
         super("td", value);
     }
 }
-class TR extends HTMLElement {
+class TRTag extends HTMLElement {
     constructor(value) {
         super("tr", value);
     }
 }
-class Table extends HTMLElement {
+class TableTag extends HTMLElement {
     constructor(value) {
         super("table", value);
     }
 }
-// TODO: abstraction
+class ImageTag {
+    constructor(value, alt) {
+        this.value = value;
+        this.alt = alt;
+    }
+    render() {
+        return `<img src="${this.value}" ${this.alt ? this.alt : ""}>`;
+    }
+}
+class ATag {
+    constructor(href, value) {
+        this.href = href;
+        this.value = value;
+    }
+    render() {
+        return `<a href="${this.href}">${this.value}</a>`;
+    }
+}
+class EmailTag extends ATag {
+    constructor(email) {
+        super(`mailto:${email}`, email);
+    }
+}
 class ElementFactory {
     constructor() {
         this.map = new Map();
-        this.map.set("th", TH);
-        this.map.set("td", TD);
-        this.map.set("tr", TR);
-        this.map.set("table", Table);
+        this.map.set("th", THTag);
+        this.map.set("td", TDTag);
+        this.map.set("tr", TRTag);
+        this.map.set("table", TableTag);
+        this.map.set("img", ImageTag);
+        this.map.set("email", EmailTag);
     }
-    // TODO: refactor
     create(element, value) {
         return new (this.map.get(element))(value);
     }
@@ -76,7 +98,10 @@ export class TableUI {
     constructor(elementFactory, rows) {
         this.rows = rows;
         this.elementFactory = elementFactory;
-        this.map = new Map();
+        this.specialElements = new Map();
+        this.specialElements.set("avatar", "img");
+        this.specialElements.set("email", "email");
+        this.specialElements.set("friends", "ul");
     }
     render() {
         return this.renderTable(this.rows.map(this.renderRow.bind(this)).join(""));
@@ -85,19 +110,26 @@ export class TableUI {
         return this.elementFactory.create("table", value).render();
     }
     renderRow(row) {
-        return this.elementFactory.create("tr", this.parseRow(row)).render();
+        return this.elementFactory.create("tr", Object.keys(row).map(key => {
+            return this.parseRow(key, row[key]);
+        }).join("")).render();
     }
-    parseRow(row) {
-        return Object.keys(row).map(key => {
-            return this.renderTd(this.map.has(key) ? this.map.get(key) : row[key]);
-        }).join("");
+    parseRow(key, value) {
+        return this.renderTd(this.specialElements.has(key) ? this.parseSpecialElement(key, value) : value);
     }
     renderTd(value) {
         return this.elementFactory.create("td", value).render();
     }
+    parseSpecialElement(key, value) {
+        console.log(value);
+        if (key === "friends") {
+            return "Friends :)";
+        }
+        return this.elementFactory.create(this.specialElements.get(key), value).render();
+    }
 }
 (function (data, document) {
-    let rows = new DataParser(new RowBuilder()).parseData(data);
+    let rows = new DataParser(new RowParser()).parseData(data);
     let table = new TableUI(new ElementFactory(), rows);
     document.getElementById("app").innerHTML = table.render();
 }(MOCK.slice(0, 10), document));

@@ -30,9 +30,8 @@ export type Friend = {
     lastName: string
 }
 
-class RowBuilder {
-    // Not original GOF builder. I need this for runtime param parsing
-    public build(user: UserMock): Row {
+class RowParser {
+    public parseToRow(user: UserMock): Row {
         let row: Row = new Row();
         row.avatar = user.avatar;
         row.email = user.email;
@@ -52,14 +51,13 @@ class RowBuilder {
 }
 
 class DataParser {
-    // TODO: abstraction - to depend on interface
-    private rowBuilder: RowBuilder;
-    constructor(rowBuilder: RowBuilder) {
+    private rowBuilder: RowParser;
+    constructor(rowBuilder: RowParser) {
         this.rowBuilder = rowBuilder;
     }
 
     public parseData(users: Array<UserMock>): Array<Row> {
-        return users.map(this.rowBuilder.build);
+        return users.map(this.rowBuilder.parseToRow);
     }
 }
 
@@ -76,42 +74,74 @@ class HTMLElement {
     }
 }
 
-class TH extends HTMLElement {
+class THTag extends HTMLElement {
     constructor(value: string) {
         super("th", value);
     }
 }
 
-class TD extends HTMLElement {
+class TDTag extends HTMLElement {
     constructor(value: string) {
         super("td", value);
     }
 }
 
-class TR extends HTMLElement {
+class TRTag extends HTMLElement {
     constructor(value: string) {
         super("tr", value);
     }
 }
 
-class Table extends HTMLElement {
+class TableTag extends HTMLElement {
     constructor(value: string) {
         super("table", value);
     }
 }
 
-// TODO: abstraction
+class ImageTag {
+    private value: string;
+    private alt?: string;
+    constructor(value: string, alt?: string) {
+        this.value = value;
+        this.alt = alt;
+    }
+
+    render() {
+        return `<img src="${this.value}" ${this.alt ? this.alt : ""}>`
+    }
+}
+
+class ATag {
+    private href: string;
+    private value: string;
+    constructor(href: string, value: string) {
+        this.href = href;
+        this.value = value;
+    }
+
+    render() {
+        return `<a href="${this.href}">${this.value}</a>`;
+    }
+}
+
+class EmailTag extends ATag {
+    constructor(email: string) {
+        super(`mailto:${email}`, email);
+    }
+}
+
 class ElementFactory {
     private map: Map<string, any>;
     constructor() {
         this.map = new Map();
-        this.map.set("th", TH);
-        this.map.set("td", TD);
-        this.map.set("tr", TR);
-        this.map.set("table", Table);
+        this.map.set("th", THTag);
+        this.map.set("td", TDTag);
+        this.map.set("tr", TRTag);
+        this.map.set("table", TableTag);
+        this.map.set("img", ImageTag);
+        this.map.set("email", EmailTag);
     }
 
-    // TODO: refactor
     public create(element: string, value: string) {
         return new (this.map.get(element))(value);
     }
@@ -120,12 +150,15 @@ class ElementFactory {
 export class TableUI {
     private rows: Array<Row>;
     private elementFactory: ElementFactory;
-    private map: Map<string, string>;
+    private specialElements: Map<string, string>;
 
     constructor(elementFactory: ElementFactory, rows: Array<Row>) {
         this.rows = rows;
         this.elementFactory = elementFactory;
-        this.map = new Map();
+        this.specialElements = new Map();
+        this.specialElements.set("avatar", "img");
+        this.specialElements.set("email", "email");
+        this.specialElements.set("friends", "ul");
     }
 
     public render(): string {
@@ -140,23 +173,36 @@ export class TableUI {
 
     private renderRow(row: Row): string {
         return this.elementFactory.create("tr",
-            this.parseRow(row)
+            Object.keys(row).map(key => {
+
+                return this.parseRow(key, row[key]);
+                
+            }).join("")
         ).render();
     }
-    
-    private parseRow(row: Row) {
-        return Object.keys(row).map(key => {
-            return this.renderTd(this.map.has(key) ? this.map.get(key) : row[key]);
-        }).join("")
+
+    private parseRow(key: string, value: any): string {
+        return this.renderTd(
+            this.specialElements.has(key) ? this.parseSpecialElement(key, value) : value
+        );
     }
 
-    private renderTd(value: string) {
+    private renderTd(value: string): string {
         return this.elementFactory.create("td", value).render();
+    }
+
+    private parseSpecialElement(key: string, value: any): string {
+        console.log(value);
+        if (key === "friends") {
+            return "Friends :)";
+        }
+
+        return this.elementFactory.create(this.specialElements.get(key), value).render();
     }
 }
 
 (function(data, document) {
-    let rows: Array<Row> = new DataParser(new RowBuilder()).parseData(data);
+    let rows: Array<Row> = new DataParser(new RowParser()).parseData(data);
     let table: TableUI = new TableUI(new ElementFactory(), rows);
     
     document.getElementById("app").innerHTML = table.render();
