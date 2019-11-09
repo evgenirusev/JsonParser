@@ -6,14 +6,20 @@ import { Friend } from "./Entities/Friend";
 import { DataParser } from "./Parser/DataParser";
 import { RowParser } from "./Parser/RowParser";
 
+// todo
+const sortRowsByFirstNameAsc = (a: Row, b: Row) => a.firstName.localeCompare(b.firstName);
+const sortRowsByFirstNameDesc = (a: Row, b: Row) => b.firstName.localeCompare(a.firstName);
+const sortRowsById = (a: Row, b: Row) =>  a.id - b.id;
+
 export class TableUI {
     private keys: Array<string>;
     private rows: Array<Row>;
     private elementFactory: ElementFactory;
     private singleTagElementFactory: SingleTagElementFactory;
     private elementHandlers: Map<string, any>;
+    private sortingStrategy: (a: Row, b: Row) => number;
 
-    constructor(elementFactory: ElementFactory, singleTagElementFactory: SingleTagElementFactory, rows: Array<Row>, keys: Array<string>) {
+    constructor(elementFactory: ElementFactory, singleTagElementFactory: SingleTagElementFactory, rows: Array<Row>, keys: Array<string>, sortingStrategy: (a: Row, b: Row) => number) {
         this.rows = rows;
         this.keys = keys;
         this.elementFactory = elementFactory;
@@ -22,6 +28,42 @@ export class TableUI {
         this.elementHandlers.set("avatar", this.avatarHandler.bind(this));
         this.elementHandlers.set("email", this.emailHandler.bind(this));
         this.elementHandlers.set("friends", this.friendsHandler.bind(this));
+        this.sortingStrategy = sortingStrategy;
+    }
+
+    public render(): string {
+        return this.renderTable(
+            this.renderTr(this.keys.map(this.renderKey.bind(this)).join(""))
+            + this.rows.sort(this.sortingStrategy).map(this.renderRow.bind(this)).join("")
+        );
+    }
+
+    public setSortingStrategy(sortingStrategy: (a: Row, b: Row) => number) {
+        this.sortingStrategy = sortingStrategy;
+    }
+
+    private renderKey(key: string) {
+        return this.elementFactory.create("td", key, {
+            id: key
+        }).render();
+    }
+
+    private renderTable(value: string): string {
+        return this.elementFactory.create("table", value).render();
+    }
+
+    private renderRow(row: Row): string {
+        return this.renderTr(this.parseRow(row));
+    }
+
+    private parseRow(row: Row): string {
+        return this.keys.map(key => {
+            return this.renderTd(
+                this.elementHandlers.has(key) 
+                    ? this.elementHandlers.get(key)(row[key])
+                    : row[key]
+            );
+        }).join("");
     }
 
     private avatarHandler(value: string): string {
@@ -44,31 +86,6 @@ export class TableUI {
         )
     }
 
-    public render(): string {
-        return this.renderTable(
-            this.renderTr(this.keys.map(this.renderTd.bind(this)).join("")) 
-            + this.rows.map(this.renderRow.bind(this)).join("")
-        );
-    }
-
-    private renderTable(value: string): string {
-        return this.elementFactory.create("table", value).render();
-    }
-
-    private renderRow(row: Row): string {
-        return this.renderTr(this.parseRow(row));
-    }
-
-    private parseRow(row: Row): string {
-        return this.keys.map(key => {
-            return this.renderTd(
-                this.elementHandlers.has(key) 
-                    ? this.elementHandlers.get(key)(row[key])
-                    : row[key]
-            );
-        }).join("");
-    }
-
     private renderTr(value: string): string {
         return this.elementFactory.create("tr", value).render();
     }
@@ -89,7 +106,7 @@ export class TableUI {
 (function(data, document) {
     const keysInOrder: Array<string> = ["avatar", "id", "firstName", "lastName", "email", "gender", "IPAddress", "friends"];
     let rows: Array<Row> = new DataParser(new RowParser()).parseData(data);
-    let table: TableUI = new TableUI(new ElementFactory(), new SingleTagElementFactory, rows, keysInOrder);
+    let table: TableUI = new TableUI(new ElementFactory(), new SingleTagElementFactory, rows, keysInOrder, sortRowsByFirstNameAsc);
     
     document.getElementById("app").innerHTML = table.render();
 }(MOCK.slice(0,10), document))
