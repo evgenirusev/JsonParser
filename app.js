@@ -57,6 +57,16 @@ class TableTag extends HTMLElement {
         super("table", value);
     }
 }
+class ULTag extends HTMLElement {
+    constructor(value) {
+        super("ul", value);
+    }
+}
+class LITag extends HTMLElement {
+    constructor(value) {
+        super("li", value);
+    }
+}
 class ImageTag {
     constructor(value, alt) {
         this.value = value;
@@ -89,6 +99,8 @@ class ElementFactory {
         this.map.set("table", TableTag);
         this.map.set("img", ImageTag);
         this.map.set("email", EmailTag);
+        this.map.set("ul", ULTag);
+        this.map.set("li", LITag);
     }
     create(element, value) {
         return new (this.map.get(element))(value);
@@ -99,9 +111,20 @@ export class TableUI {
         this.rows = rows;
         this.elementFactory = elementFactory;
         this.specialElements = new Map();
-        this.specialElements.set("avatar", "img");
-        this.specialElements.set("email", "email");
-        this.specialElements.set("friends", "ul");
+        this.specialElements.set("avatar", this.avatarHandler.bind(this));
+        this.specialElements.set("email", this.emailHandler.bind(this));
+        this.specialElements.set("friends", this.friendsHandler.bind(this));
+    }
+    avatarHandler(value) {
+        return this.elementFactory.create("img", value).render();
+    }
+    emailHandler(value) {
+        return this.elementFactory.create("email", value).render();
+    }
+    friendsHandler(friends) {
+        return this.renderUL(friends.map((friend) => {
+            return this.renderLI(`${friend.firstName} ${friend.lastName}`);
+        }).join(""));
     }
     render() {
         return this.renderTable(this.rows.map(this.renderRow.bind(this)).join(""));
@@ -110,22 +133,23 @@ export class TableUI {
         return this.elementFactory.create("table", value).render();
     }
     renderRow(row) {
-        return this.elementFactory.create("tr", Object.keys(row).map(key => {
-            return this.parseRow(key, row[key]);
-        }).join("")).render();
+        return this.elementFactory.create("tr", this.parseRow(row)).render();
     }
-    parseRow(key, value) {
-        return this.renderTd(this.specialElements.has(key) ? this.parseSpecialElement(key, value) : value);
+    parseRow(row) {
+        return Object.keys(row).map(key => {
+            return this.renderTd(this.specialElements.has(key)
+                ? this.specialElements.get(key)(row[key])
+                : row[key]);
+        }).join("");
     }
     renderTd(value) {
         return this.elementFactory.create("td", value).render();
     }
-    parseSpecialElement(key, value) {
-        console.log(value);
-        if (key === "friends") {
-            return "Friends :)";
-        }
-        return this.elementFactory.create(this.specialElements.get(key), value).render();
+    renderUL(value) {
+        return this.elementFactory.create("ul", value).render();
+    }
+    renderLI(value) {
+        return this.elementFactory.create("li", value).render();
     }
 }
 (function (data, document) {

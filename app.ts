@@ -98,6 +98,18 @@ class TableTag extends HTMLElement {
     }
 }
 
+class ULTag extends HTMLElement {
+    constructor(value: string) {
+        super("ul", value);
+    }
+}
+
+class LITag extends HTMLElement {
+    constructor(value: string) {
+        super("li", value);
+    }
+}
+
 class ImageTag {
     private value: string;
     private alt?: string;
@@ -140,6 +152,8 @@ class ElementFactory {
         this.map.set("table", TableTag);
         this.map.set("img", ImageTag);
         this.map.set("email", EmailTag);
+        this.map.set("ul", ULTag);
+        this.map.set("li", LITag);
     }
 
     public create(element: string, value: string) {
@@ -150,15 +164,31 @@ class ElementFactory {
 export class TableUI {
     private rows: Array<Row>;
     private elementFactory: ElementFactory;
-    private specialElements: Map<string, string>;
+    private specialElements: Map<string, any>;
 
     constructor(elementFactory: ElementFactory, rows: Array<Row>) {
         this.rows = rows;
         this.elementFactory = elementFactory;
         this.specialElements = new Map();
-        this.specialElements.set("avatar", "img");
-        this.specialElements.set("email", "email");
-        this.specialElements.set("friends", "ul");
+        this.specialElements.set("avatar", this.avatarHandler.bind(this));
+        this.specialElements.set("email", this.emailHandler.bind(this));
+        this.specialElements.set("friends", this.friendsHandler.bind(this));
+    }
+
+    private avatarHandler(value: string): string {
+        return this.elementFactory.create("img", value).render();
+    }
+
+    private emailHandler(value: string): string {
+        return this.elementFactory.create("email", value).render();
+    }
+
+    private friendsHandler(friends: Array<Friend>): string {
+        return this.renderUL(
+            friends.map((friend: Friend) => {
+                return this.renderLI(`${friend.firstName} ${friend.lastName}`)
+            }).join("")
+        )
     }
 
     public render(): string {
@@ -173,31 +203,30 @@ export class TableUI {
 
     private renderRow(row: Row): string {
         return this.elementFactory.create("tr",
-            Object.keys(row).map(key => {
-
-                return this.parseRow(key, row[key]);
-                
-            }).join("")
+            this.parseRow(row)
         ).render();
     }
 
-    private parseRow(key: string, value: any): string {
-        return this.renderTd(
-            this.specialElements.has(key) ? this.parseSpecialElement(key, value) : value
-        );
+    private parseRow(row: Row): string {
+        return Object.keys(row).map(key => {
+            return this.renderTd(
+                this.specialElements.has(key) 
+                    ? this.specialElements.get(key)(row[key])
+                    : row[key]
+            );
+        }).join("");
     }
 
     private renderTd(value: string): string {
         return this.elementFactory.create("td", value).render();
     }
 
-    private parseSpecialElement(key: string, value: any): string {
-        console.log(value);
-        if (key === "friends") {
-            return "Friends :)";
-        }
+    private renderUL(value: string): string {
+        return this.elementFactory.create("ul", value).render();
+    }
 
-        return this.elementFactory.create(this.specialElements.get(key), value).render();
+    private renderLI(value: string): string {
+        return this.elementFactory.create("li", value).render();
     }
 }
 
