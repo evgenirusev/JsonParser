@@ -1,10 +1,10 @@
-import { MOCK } from "./mock/MOCK_DATA.js";
-import { Row } from "./Entities/Row.js";
-import { ElementFactory } from "./Factories/ElementFactory.js";
-import { SingleTagElementFactory } from "./Factories/SingleTagElementFactory.js";
-import { Friend } from "./Entities/Friend.js";
-import { DataParser } from "./Parser/DataParser.js";
-import { RowParser } from "./Parser/RowParser.js";
+import { MOCK } from "./mock/MOCK_DATA";
+import { Row } from "./Entities/Row";
+import { ElementFactory } from "./Factories/ElementFactory";
+import { SingleTagElementFactory } from "./Factories/SingleTagElementFactory";
+import { Friend } from "./Entities/Friend";
+import { DataParser } from "./Parser/DataParser";
+import { RowParser } from "./Parser/RowParser";
 
 export class TableUI {
     private keys: Array<string>;
