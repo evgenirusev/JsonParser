@@ -17,8 +17,10 @@ export class TableUI {
     private singleTagElementFactory: SingleTagElementFactory;
     private elementHandlers: Map<string, any>;
     private sortingStrategy: (a: Row, b: Row) => number;
+    private keysToSortingFunctions: Map<string, (a: Row, b: Row) => number>;
+    private wrapper: HTMLElement;
 
-    constructor(elementFactory: ElementFactory, singleTagElementFactory: SingleTagElementFactory, rows: Array<Row>, keys: Array<string>, sortingStrategy: (a: Row, b: Row) => number) {
+    constructor(elementFactory: ElementFactory, singleTagElementFactory: SingleTagElementFactory, rows: Array<Row>, keys: Array<string>, wrapper: HTMLElement) {
         this.rows = rows;
         this.keys = keys;
         this.elementFactory = elementFactory;
@@ -27,12 +29,17 @@ export class TableUI {
         this.elementHandlers.set("avatar", this.avatarHandler.bind(this));
         this.elementHandlers.set("email", this.emailHandler.bind(this));
         this.elementHandlers.set("friends", this.friendsHandler.bind(this));
-        this.sortingStrategy = sortingStrategy;
+        this.sortingStrategy = sortRowsById;
+        this.keysToSortingFunctions = new Map();
+        this.keysToSortingFunctions.set("id", sortRowsById);
+        this.keysToSortingFunctions.set("firstName", sortRowsByFirstNameAsc);
+        this.wrapper = wrapper;
+        this.wrapper.addEventListener("click", this);
     }
 
     public render(): string {
         return this.renderTable(
-            this.renderTr(this.keys.map(this.renderKey.bind(this)).join(""))
+            this.renderTr(this.keys.map(this.renderKey.bind(this)).join("")) 
             + this.rows.sort(this.sortingStrategy).map(this.renderRow.bind(this)).join("")
         );
     }
@@ -45,6 +52,20 @@ export class TableUI {
         return this.elementFactory.create("td", key, {
             id: key
         }).render();
+    }
+
+    public handleEvent(event: MouseEvent): void {
+        this.setSortingStrategy(
+            this.keysToSortingFunctions.get((event.target as HTMLInputElement).id)
+        );
+        this.cleanHTML()
+        this.wrapper.innerHTML = this.render();
+    }
+
+    private cleanHTML(): void {
+        while (this.wrapper.firstElementChild !== null) {
+            this.wrapper.removeChild(this.wrapper.firstElementChild);
+        }
     }
 
     private renderTable(value: string): string {
@@ -105,21 +126,7 @@ export class TableUI {
 (function(data, document) {
     const keysInOrder: Array<string> = ["avatar", "id", "firstName", "lastName", "email", "gender", "IPAddress", "friends"];
     let rows: Array<Row> = new DataParser(new RowParser()).parseData(data);
-    let table: TableUI = new TableUI(new ElementFactory(), new SingleTagElementFactory, rows, keysInOrder, sortRowsByFirstNameAsc);
+    let table: TableUI = new TableUI(new ElementFactory(), new SingleTagElementFactory, rows, keysInOrder, document.getElementById("app"));
 
     document.getElementById("app").innerHTML = table.render();
-
-    let keysToSortingFunctions: Map<string, (a: Row, b: Row) => number> = new Map();
-    keysToSortingFunctions.set("id", sortRowsById);
-    keysToSortingFunctions.set("firstName", sortRowsByFirstNameAsc);
-
-    keysInOrder.map((key: string) => {
-        document.getElementById(key).addEventListener("click", function(event) { 
-            let sortingStrategy: (a: Row, b: Row) => number = keysToSortingFunctions.get((event.target as HTMLInputElement).id);
-            table.setSortingStrategy(sortingStrategy);
-            console.log(table);
-            console.log(table.render());
-            document.getElementById("app").innerHTML = table.render();
-        });
-    });
 }(MOCK.slice(0,10), document))
