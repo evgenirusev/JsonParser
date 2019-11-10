@@ -8,5 +8,5 @@ export interface ITableBuilder {
     buildUL(value: string): string;
     buildLI(value: string): string;
     buildTableBody(): string;
-    setSortingStrategy(sortingStrategy: (a: Row, b: Row) => number);
+    setSortingStrategyID(id: string): void;
 }

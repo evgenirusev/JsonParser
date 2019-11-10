@@ -4,6 +4,10 @@ import { IElementFactory } from "../Factories/ElementFactory/IElementFactory";
 import { Row } from "../Entities/Row";
 import { ISingleTagElementFactory } from "../Factories/SingleTagElementFactory/ISingleTagElementFactory";
 import { Friend } from "../Entities/index";
+import { sortRowsById } from "../Strategies/Sorting/sortRowsById";
+import { sortRowsByFirstName } from "../Strategies/Sorting/sortRowsByFirstName";
+import { sortRowsByLastName } from "../Strategies/Sorting/sortRowsByLastName";
+import { sortRowsByEmail } from "../Strategies/Sorting/sortRowsByEmail";
 
 type TableBuilderProps = {
     elementFactory: IElementFactory,
@@ -22,6 +26,7 @@ export class TableBuilder implements ITableBuilder {
     private rows: Array<Row>;
     private sortingStrategy: (a: Row, b: Row) => number;
     private elementHandlers = new Map();
+    private idToSortingStrategy: Dictionary<(a: Row, b: Row) => number>;
     
     constructor(args: TableBuilderProps) {
         this.elementFactory = args.elementFactory;
@@ -32,6 +37,12 @@ export class TableBuilder implements ITableBuilder {
         this.elementHandlers.set("avatar", this.avatarHandler.bind(this));
         this.elementHandlers.set("email", this.emailHandler.bind(this));
         this.elementHandlers.set("friends", this.friendsHandler.bind(this));
+        this.idToSortingStrategy = {
+            "id": sortRowsById,
+            "firstName": sortRowsByFirstName,
+            "lastName": sortRowsByLastName,
+            "email": sortRowsByEmail
+        }
     }
 
     public buildKeys(): string {
@@ -61,8 +72,8 @@ export class TableBuilder implements ITableBuilder {
         return this.rows.sort(this.sortingStrategy).map(this.renderRow.bind(this)).join("")
     }
 
-    public setSortingStrategy(sortingStrategy: (a: Row, b: Row) => number) {
-        this.sortingStrategy = sortingStrategy;
+    public setSortingStrategyID(id: string): void {
+        this.sortingStrategy = this.idToSortingStrategy[id];
     }
 
     private renderKey(key: string): string {
