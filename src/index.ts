@@ -5,12 +5,10 @@ import { SingleTagElementFactory } from "./Factories/SingleTagElementFactory";
 import { Friend } from "./Entities/Friend";
 import { DataParser } from "./Parser/DataParser";
 import { RowParser } from "./Parser/RowParser";
-
-// todo
-const sortRowsById = (a: Row, b: Row) =>  a.id - b.id;
-const sortRowsByFirstName = (a: Row, b: Row) => a.firstName.localeCompare(b.firstName);
-const sortRowsByLastName = (a: Row, b: Row) => a.lastName.localeCompare(b.lastName);
-const sortRowsByEmail = (a: Row, b: Row) => a.email.localeCompare(b.email);
+import { sortRowsById } from "./Strategies/Sorting/sortRowsById";
+import { sortRowsByFirstName } from "./Strategies/Sorting/sortRowsByFirstName";
+import { sortRowsByLastName } from "./Strategies/Sorting/sortRowsByLastName";
+import { sortRowsByEmail } from "./Strategies/Sorting/sortRowsByEmail";
 
 export class TableUI {
     private keys: Array<string>;
