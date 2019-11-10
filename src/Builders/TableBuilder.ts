@@ -1,4 +1,3 @@
-import { ElementFactory } from "../Factories/index";
 import { ITableBuilder } from "./ITableBuilder";
 import { Dictionary } from "../Contracts/IDictionary";
 import { IElementFactory } from "../Factories/ElementFactory/IElementFactory";
@@ -8,7 +7,7 @@ export class TableBuilder implements ITableBuilder {
     private dictionary: Dictionary<string>;
     private keys: Array<string>;
     
-    constructor(elementFactory: ElementFactory, dictionary: Dictionary<string>, keys: Array<string>) {
+    constructor(elementFactory: IElementFactory, dictionary: Dictionary<string>, keys: Array<string>) {
         this.elementFactory = elementFactory;
         this.dictionary = dictionary;
         this.keys = keys;
@@ -42,5 +41,4 @@ export class TableBuilder implements ITableBuilder {
             id: key
         }).render();
     }
-
 }
