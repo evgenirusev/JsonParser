@@ -1,25 +1,17 @@
-import { IHtmlElement } from "../Contracts/IHtmlElement";
 import { IAttributes } from "../Contracts/IAttributes";
+import { BaseHTMLElement } from "./BaseHTMLElement";
 
-export class HTMLElement implements IHtmlElement {
+export class HTMLElement extends BaseHTMLElement {
     private tag: string;
     private value: string;
-    private attributes?: IAttributes;
-
+    
     constructor(tag: string, value: string, attributes?: IAttributes) {
+        super(attributes);
         this.tag = tag;
         this.value = value;
-        this.attributes = attributes;
     }
 
     render() {
-        return `<${this.tag} ${this.getAttributes()}>${this.value}</${this.tag}>`;
-    }
-
-    // DRY - reuse this
-    private getAttributes() {
-        return this.attributes 
-            ? Object.keys(this.attributes).map(key => `${key}=${this.attributes[key]}`).join(" ")
-            : "";
+        return `<${this.tag} ${super.getAttributes()}>${this.value}</${this.tag}>`;
     }
 }

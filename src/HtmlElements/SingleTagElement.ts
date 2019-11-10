@@ -1,23 +1,15 @@
-import { IHtmlElement } from "../Contracts/IHtmlElement";
 import { IAttributes } from "../Contracts/IAttributes";
+import { BaseHTMLElement } from "./BaseHTMLElement";
 
-export class SingleTagElement implements IHtmlElement {
+export class SingleTagElement extends BaseHTMLElement {
     private tag: string;
-    private attributes?: IAttributes;
 
     constructor(tag: string, attributes?: IAttributes) {
+        super(attributes);
         this.tag = tag;
-        this.attributes = attributes;
     }
 
     render(): string {
-        return `<${this.tag} ${this.getAttributes()}>`
-    }
-
-    // create abstraction for this in BaseHTML element !!!!!!
-    private getAttributes() {
-        return this.attributes 
-            ? Object.keys(this.attributes).map(key => `${key}=${this.attributes[key]}`).join(" ")
-            : "";
+        return `<${this.tag} ${super.getAttributes()}>`
     }
 }
