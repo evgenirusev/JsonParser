@@ -1,3 +1,5 @@
+import { Row } from "../Entities/Row";
+
 export interface ITableBuilder {
     buildKeys(): string;
     buildTable(value: string): string;
@@ -5,4 +7,6 @@ export interface ITableBuilder {
     buildTd(value: string): string;
     buildUL(value: string): string;
     buildLI(value: string): string;
+    buildTableBody(): string;
+    setSortingStrategy(sortingStrategy: (a: Row, b: Row) => number);
 }
