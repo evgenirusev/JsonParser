@@ -7,8 +7,10 @@ import { DataParser } from "./Parser/DataParser";
 import { RowParser } from "./Parser/RowParser";
 
 // todo
-const sortRowsByFirstNameAsc = (a: Row, b: Row) => a.firstName.localeCompare(b.firstName);
 const sortRowsById = (a: Row, b: Row) =>  a.id - b.id;
+const sortRowsByFirstName = (a: Row, b: Row) => a.firstName.localeCompare(b.firstName);
+const sortRowsByLastName = (a: Row, b: Row) => a.lastName.localeCompare(b.lastName);
+const sortRowsByEmail = (a: Row, b: Row) => a.email.localeCompare(b.email);
 
 export class TableUI {
     private keys: Array<string>;
@@ -32,7 +34,9 @@ export class TableUI {
         this.sortingStrategy = sortRowsById;
         this.keysToSortingFunctions = new Map();
         this.keysToSortingFunctions.set("id", sortRowsById);
-        this.keysToSortingFunctions.set("firstName", sortRowsByFirstNameAsc);
+        this.keysToSortingFunctions.set("firstName", sortRowsByFirstName);
+        this.keysToSortingFunctions.set("lastName", sortRowsByLastName);
+        this.keysToSortingFunctions.set("firstName", sortRowsByEmail);
         this.wrapper = wrapper;
         this.wrapper.addEventListener("click", this);
     }
