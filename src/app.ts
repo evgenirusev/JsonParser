@@ -138,6 +138,7 @@ export class TableUI {
 
 (function(data, document) {
     const keysInOrder: Array<string> = ["avatar", "id", "firstName", "lastName", "email", "gender", "IPAddress", "friends"];
+    let rows: Array<Row> = new DataParser(new RowParser()).parseData(data);
     const dict: Map<string, string> = new Map();
     dict.set("avatar", "Профилна");
     dict.set("id", "Идентификатор");
@@ -147,8 +148,8 @@ export class TableUI {
     dict.set("gender", "Пол");
     dict.set("IPAddress", "IP Адрес");
     dict.set("friends", "Приятели");
-    let rows: Array<Row> = new DataParser(new RowParser()).parseData(data);
-    let table: TableUI = new TableUI(
+    
+    document.getElementById("app").innerHTML = new TableUI(
         {
             elementFactory: new ElementFactory(),
             singleTagElementFactory: new SingleTagElementFactory,
@@ -157,7 +158,5 @@ export class TableUI {
             wrapper: document.getElementById("app"),
             dict: dict
         }
-    );
-
-    document.getElementById("app").innerHTML = table.render();
+    ).render();
 }(MOCK.slice(0,10), document))
