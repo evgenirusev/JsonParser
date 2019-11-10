@@ -4,10 +4,6 @@ import { IElementFactory } from "../Factories/ElementFactory/IElementFactory";
 import { Row } from "../Entities/Row";
 import { ISingleTagElementFactory } from "../Factories/SingleTagElementFactory/ISingleTagElementFactory";
 import { Friend } from "../Entities/index";
-import { sortRowsById } from "../Strategies/Sorting/sortRowsById";
-import { sortRowsByFirstName } from "../Strategies/Sorting/sortRowsByFirstName";
-import { sortRowsByLastName } from "../Strategies/Sorting/sortRowsByLastName";
-import { sortRowsByEmail } from "../Strategies/Sorting/sortRowsByEmail";
 
 type TableBuilderProps = {
     elementFactory: IElementFactory,
@@ -15,7 +11,8 @@ type TableBuilderProps = {
     dictionary: Dictionary<string>,
     keys: Array<string>,
     rows: Array<Row>,
-    sortingStrategy: (a: Row, b: Row) => number 
+    defaultSortingStrategy: (a: Row, b: Row) => number,
+    IDsToSortingStrategies: Dictionary<(a: Row, b: Row) => number>
 }
 
 export class TableBuilder implements ITableBuilder {
@@ -26,7 +23,7 @@ export class TableBuilder implements ITableBuilder {
     private rows: Array<Row>;
     private sortingStrategy: (a: Row, b: Row) => number;
     private elementHandlers = new Map();
-    private idToSortingStrategy: Dictionary<(a: Row, b: Row) => number>;
+    private IDsToSortingStrategies: Dictionary<(a: Row, b: Row) => number>;
     
     constructor(args: TableBuilderProps) {
         this.elementFactory = args.elementFactory;
@@ -37,21 +34,18 @@ export class TableBuilder implements ITableBuilder {
         this.elementHandlers.set("avatar", this.avatarHandler.bind(this));
         this.elementHandlers.set("email", this.emailHandler.bind(this));
         this.elementHandlers.set("friends", this.friendsHandler.bind(this));
-        this.idToSortingStrategy = {
-            "id": sortRowsById,
-            "firstName": sortRowsByFirstName,
-            "lastName": sortRowsByLastName,
-            "email": sortRowsByEmail
-        }
-    }
-
-    public buildKeys(): string {
-        return this.keys.map(this.renderKey.bind(this)).join("")
+        this.sortingStrategy = args.defaultSortingStrategy;
+        this.IDsToSortingStrategies = args.IDsToSortingStrategies;
     }
 
     public buildTable(value: string): string {
         return this.elementFactory.create("table", value).render();
     }
+
+    public buildTableBody(): string {
+        return this.rows.sort(this.sortingStrategy).map(this.buildRow.bind(this)).join("")
+    }
+
     public buildTr(value: string): string {
         return this.elementFactory.create("tr", value).render();
     }
@@ -60,29 +54,29 @@ export class TableBuilder implements ITableBuilder {
         return this.elementFactory.create("td", value).render();
     }
 
-    public buildUL(value: string): string {
+    public buildUl(value: string): string {
         return this.elementFactory.create("ul", value).render();
     }
 
-    public buildLI(value: string): string {
+    public buildLi(value: string): string {
         return this.elementFactory.create("li", value).render();
     }
 
-    public buildTableBody(): string {
-        return this.rows.sort(this.sortingStrategy).map(this.renderRow.bind(this)).join("")
+    public buildKeys(): string {
+        return this.keys.map(this.buildKey.bind(this)).join("")
     }
 
     public setSortingStrategyID(id: string): void {
-        this.sortingStrategy = this.idToSortingStrategy[id];
+        this.sortingStrategy = this.IDsToSortingStrategies[id];
     }
 
-    private renderKey(key: string): string {
+    private buildKey(key: string): string {
         return this.elementFactory.create("td", this.dictionary[key] || key, {
             id: key
         }).render();
     }
 
-    private renderRow(row: Row): string {
+    private buildRow(row: Row): string {
         return this.buildTr(this.parseRow(row));
     }
 
@@ -109,9 +103,9 @@ export class TableBuilder implements ITableBuilder {
     }
 
     private friendsHandler(friends: Array<Friend>): string {
-        return this.buildUL(
+        return this.buildUl(
             friends.map((friend: Friend) => {
-                return this.buildLI(`${friend.firstName} ${friend.lastName}`)
+                return this.buildLi(`${friend.firstName} ${friend.lastName}`)
             }).join("")
         )
     }
