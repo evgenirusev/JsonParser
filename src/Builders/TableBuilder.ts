@@ -1,9 +1,10 @@
 import { ElementFactory } from "../Factories/index";
 import { ITableBuilder } from "./ITableBuilder";
 import { Dictionary } from "../Contracts/IDictionary";
+import { IElementFactory } from "../Factories/ElementFactory/IElementFactory";
 
 export class TableBuilder implements ITableBuilder {
-    private elementFactory: ElementFactory;
+    private elementFactory: IElementFactory;
     private dictionary: Dictionary<string>;
     private keys: Array<string>;
     

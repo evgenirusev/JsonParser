@@ -1,2 +1,2 @@
-export * from "./SingleTagElementFactory";
-export * from "./ElementFactory";
+export * from "./SingleTagElementFactory/SingleTagElementFactory";
+export * from "./ElementFactory/ElementFactory";
