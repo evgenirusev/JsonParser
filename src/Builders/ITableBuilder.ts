@@ -1,5 +1,3 @@
-import { Row } from "../Entities/Row";
-
 export interface ITableBuilder {
     buildTable(value: string): string;
     buildTableBody(): string;
