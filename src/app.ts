@@ -51,6 +51,7 @@ export class TableUI {
     }
 
     public render(): string {
+        this.cleanHTML()
         return this.renderTable(
             this.renderTr(this.keys.map(this.renderKey.bind(this)).join("")) 
             + this.rows.sort(this.sortingStrategy).map(this.renderRow.bind(this)).join("")
@@ -65,7 +66,6 @@ export class TableUI {
         this.setSortingStrategy(
             this.keysToSortingFunctions.get((event.target as HTMLInputElement).id)
         );
-        this.cleanHTML()
         this.wrapper.innerHTML = this.render();
     }
 
