@@ -36,7 +36,7 @@ export class TableUI {
         this.keysToSortingFunctions.set("id", sortRowsById);
         this.keysToSortingFunctions.set("firstName", sortRowsByFirstName);
         this.keysToSortingFunctions.set("lastName", sortRowsByLastName);
-        this.keysToSortingFunctions.set("firstName", sortRowsByEmail);
+        this.keysToSortingFunctions.set("email", sortRowsByEmail);
         this.wrapper = wrapper;
         this.wrapper.addEventListener("click", this);
     }
