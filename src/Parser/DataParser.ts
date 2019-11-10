@@ -3,12 +3,13 @@ import { Row } from "../Entities/Row";
 import { UserMockType } from "../Contracts/UserMockType";
 
 export class DataParser {
-    private rowBuilder: RowParser;
+    // TODO: depend on interface
+    private rowParser: RowParser;
     constructor(rowBuilder: RowParser) {
-        this.rowBuilder = rowBuilder;
+        this.rowParser = rowBuilder;
     }
 
     public parseData(users: Array<UserMockType>): Array<Row> {
-        return users.map(this.rowBuilder.parseToRow);
+        return users.map(this.rowParser.parseToRow);
     }
 }
