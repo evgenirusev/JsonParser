@@ -9,6 +9,9 @@ import { sortRowsById } from "./Strategies/Sorting/sortRowsById";
 import { sortRowsByFirstName } from "./Strategies/Sorting/sortRowsByFirstName";
 import { sortRowsByLastName } from "./Strategies/Sorting/sortRowsByLastName";
 import { sortRowsByEmail } from "./Strategies/Sorting/sortRowsByEmail";
+import { ITableBuilder } from "./Builders/ITableBuilder";
+import { TableBuilder } from "./Builders/TableBuilder";
+import { dictionary } from "./dict/dictionary";
 
 type TableUIArgs = {
     elementFactory: ElementFactory,
@@ -16,7 +19,7 @@ type TableUIArgs = {
     rows: Array<Row>,
     keys: Array<string>,
     wrapper: HTMLElement,
-    dict: Map<string, string>
+    tableBuilder: ITableBuilder
 }
 
 export class TableUI {
@@ -28,7 +31,7 @@ export class TableUI {
     private sortingStrategy: (a: Row, b: Row) => number;
     private keysToSortingFunctions: Map<string, (a: Row, b: Row) => number>;
     private wrapper: HTMLElement;
-    private dict: Map<string, string>;
+    private tableBuilder: ITableBuilder;
 
     constructor(args: TableUIArgs) {
         this.rows = args.rows;
@@ -45,15 +48,15 @@ export class TableUI {
         this.keysToSortingFunctions.set("firstName", sortRowsByFirstName);
         this.keysToSortingFunctions.set("lastName", sortRowsByLastName);
         this.keysToSortingFunctions.set("email", sortRowsByEmail);
+        this.tableBuilder = args.tableBuilder;
         this.wrapper = args.wrapper;
         this.wrapper.addEventListener("click", this);
-        this.dict = args.dict;
     }
 
     public render(): string {
         this.cleanHTML()
-        return this.renderTable(
-            this.renderTr(this.keys.map(this.renderKey.bind(this)).join("")) 
+        return this.tableBuilder.buildTable(
+            this.tableBuilder.buildTr(this.tableBuilder.buildKeys()) 
             + this.rows.sort(this.sortingStrategy).map(this.renderRow.bind(this)).join("")
         );
     }
@@ -69,11 +72,7 @@ export class TableUI {
         this.wrapper.innerHTML = this.render();
     }
 
-    private renderKey(key: string) {
-        return this.elementFactory.create("td", this.dict.get(key) || key, {
-            id: key
-        }).render();
-    }
+    
 
     private cleanHTML(): void {
         while (this.wrapper.firstElementChild !== null) {
@@ -81,17 +80,9 @@ export class TableUI {
         }
     }
 
-    private renderTable(value: string): string {
-        return this.elementFactory.create("table", value).render();
-    }
-
-    private renderRow(row: Row): string {
-        return this.renderTr(this.parseRow(row));
-    }
-
     private parseRow(row: Row): string {
         return this.keys.map(key => {
-            return this.renderTd(
+            return this.tableBuilder.buildTd(
                 this.elementHandlers.has(key) 
                     ? this.elementHandlers.get(key)(row[key])
                     : row[key]
@@ -112,42 +103,22 @@ export class TableUI {
     }
 
     private friendsHandler(friends: Array<Friend>): string {
-        return this.renderUL(
+        return this.tableBuilder.buildUL(
             friends.map((friend: Friend) => {
-                return this.renderLI(`${friend.firstName} ${friend.lastName}`)
+                return this.tableBuilder.buildLI(`${friend.firstName} ${friend.lastName}`)
             }).join("")
         )
     }
 
-    private renderTr(value: string): string {
-        return this.elementFactory.create("tr", value).render();
-    }
-
-    private renderTd(value: string): string {
-        return this.elementFactory.create("td", value).render();
-    }
-
-    private renderUL(value: string): string {
-        return this.elementFactory.create("ul", value).render();
-    }
-
-    private renderLI(value: string): string {
-        return this.elementFactory.create("li", value).render();
+    private renderRow(row: Row): string {
+        return this.tableBuilder.buildTr(this.parseRow(row));
     }
 }
 
 (function(data, document) {
     const keysInOrder: Array<string> = ["avatar", "id", "firstName", "lastName", "email", "gender", "IPAddress", "friends"];
     let rows: Array<Row> = new DataParser(new RowParser()).parseData(data);
-    const dict: Map<string, string> = new Map();
-    dict.set("avatar", "Профилна");
-    dict.set("id", "Идентификатор");
-    dict.set("firstName", "Име");
-    dict.set("lastName", "Фамилия");
-    dict.set("email", "Мейл");
-    dict.set("gender", "Пол");
-    dict.set("IPAddress", "IP Адрес");
-    dict.set("friends", "Приятели");
+    const elementFactory: ElementFactory = new ElementFactory();
     
     document.getElementById("app").innerHTML = new TableUI(
         {
@@ -156,7 +127,7 @@ export class TableUI {
             rows,
             keys: keysInOrder,
             wrapper: document.getElementById("app"),
-            dict: dict
+            tableBuilder: new TableBuilder(elementFactory, dictionary, keysInOrder)
         }
     ).render();
 }(MOCK.slice(0,10), document))

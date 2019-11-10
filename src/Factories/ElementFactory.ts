@@ -7,6 +7,7 @@ import { ULTag } from "../HtmlElements/ConcreteElements/ULTag";
 import { LITag } from "../HtmlElements/ConcreteElements/LITag";
 import { ATag } from "../HtmlElements/ConcreteElements/ATag";
 import { ClassType } from "../Contracts/ClassType";
+import { IHtmlElement } from "../Contracts/index";
 
 export class ElementFactory {
     private map: Map<string, ClassType>;
@@ -21,7 +22,7 @@ export class ElementFactory {
         this.map.set("a", ATag);
     }
 
-    public create(element: string, value: string, attributes?: IAttributes) {
+    public create(element: string, value: string, attributes?: IAttributes): IHtmlElement {
         return new (this.map.get(element))(value, attributes);
     }
 }
