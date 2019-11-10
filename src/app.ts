@@ -1,7 +1,7 @@
 import { MOCK } from "./mock/MOCK_DATA";
 import { Row } from "./Entities/Row";
-import { ElementFactory } from "./Factories/ElementFactory";
-import { SingleTagElementFactory } from "./Factories/SingleTagElementFactory";
+import { ElementFactory } from "./Factories/ElementFactory/ElementFactory";
+import { SingleTagElementFactory } from "./Factories/SingleTagElementFactory/SingleTagElementFactory";
 import { Friend } from "./Entities/Friend";
 import { DataParser } from "./Parser/DataParser";
 import { RowParser } from "./Parser/RowParser";
@@ -12,6 +12,8 @@ import { sortRowsByEmail } from "./Strategies/Sorting/sortRowsByEmail";
 import { ITableBuilder } from "./Builders/ITableBuilder";
 import { TableBuilder } from "./Builders/TableBuilder";
 import { dictionary } from "./dict/dictionary";
+import { ISingleTagElementFactory } from "./Factories/SingleTagElementFactory/ISingleTagElementFactory";
+import { IElementFactory } from "./Factories/ElementFactory/IElementFactory";
 
 type TableUIArgs = {
     elementFactory: ElementFactory,
@@ -25,8 +27,8 @@ type TableUIArgs = {
 export class TableUI {
     private keys: Array<string>;
     private rows: Array<Row>;
-    private elementFactory: ElementFactory;
-    private singleTagElementFactory: SingleTagElementFactory;
+    private elementFactory: IElementFactory;
+    private singleTagElementFactory: ISingleTagElementFactory;
     private elementHandlers: Map<string, any>;
     private sortingStrategy: (a: Row, b: Row) => number;
     private keysToSortingFunctions: Map<string, (a: Row, b: Row) => number>;
