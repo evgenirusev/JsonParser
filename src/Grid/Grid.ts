@@ -20,6 +20,8 @@ export class Grid implements IGrid {
     }
 
     public handleEvent(event: MouseEvent): void {
+        // TODO: decouple by using middlelayer which manages the events - something like EventsManager.ts
+        // The Grid shouldn't know anything about setting a sorting strategy.
         this.tableBuilder.setSortingStrategyID((event.target as HTMLInputElement).id);
         this.wrapper.innerHTML = this.render();
     }
